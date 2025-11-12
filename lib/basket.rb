@@ -2,9 +2,9 @@ require_relative 'product'
 require_relative 'delivery_rule'
 
 class Basket
-  def initialize(products, delivery_rules = DeliveryRule::DELIVERY_RULES, offers = [])
+  def initialize(products, delivery_rules, offers = [])
     @product_catalog = products
-    @delivery_rule = DeliveryRule.new(delivery_rules)
+    @delivery_rule = delivery_rules
     @offers = offers
     @items = []
   end
@@ -16,13 +16,6 @@ class Basket
   end
 
   def total
-    subtotal = calculate_subtotal
-    discount = calculate_total_discount
-    delivery = @delivery_rule.calculate(subtotal - discount)
-    (subtotal - discount + delivery).round(2)
-  end
-
-  def summary
     subtotal = calculate_subtotal
     discount = calculate_total_discount
     delivery = @delivery_rule.calculate(subtotal - discount)
