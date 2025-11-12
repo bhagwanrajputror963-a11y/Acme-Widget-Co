@@ -1,10 +1,6 @@
-class Basket
-  PRODUCTS = {
-    'R01' => { name: 'Red Widget', price: 32.95 },
-    'G01' => { name: 'Green Widget', price: 24.95 },
-    'B01' => { name: 'Blue Widget', price: 7.95 }
-  }.freeze
+require_relative 'product'
 
+class Basket
   DELIVERY_RULES = [
     { threshold: 50, cost: 4.95 },
     { threshold: 90, cost: 2.95 },
@@ -15,16 +11,17 @@ class Basket
   # [
   #   { code: 'R01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 } },
   # ]
-  def initialize(delivery_rules = DELIVERY_RULES, offers = [])
-    @items = []
+  def initialize(products, delivery_rules = DELIVERY_RULES, offers = [])
+    @product_catalog = products
     @delivery_rules = delivery_rules
     @offers = offers
+    @items = []
   end
 
   def add(product_code)
-    return @items << product_code if PRODUCTS.key?(product_code)
-
-    puts "Unknown product code: '#{product_code}'"
+    product = @product_catalog.find { |p| p.code == product_code }
+    puts "Unknown product code: #{product_code}" unless product
+    @items << product
   end
 
   def total
@@ -42,9 +39,8 @@ class Basket
 
     puts "🛒 Basket Summary"
     puts "-----------------------------"
-    grouped_items.each do |code, count|
-      product = PRODUCTS[code]
-      puts "#{product[:name]} (#{code}) x#{count} - $#{format('%.2f', product[:price] * count)}"
+    grouped_items.each do |product, count|
+      puts "#{product.name} (#{product.code}) x#{count} - $#{format('%.2f', product.price * count)}"
     end
     puts "-----------------------------"
     puts "Subtotal:        $#{format('%.2f', subtotal)}"
@@ -57,13 +53,12 @@ class Basket
   private
 
   def calculate_subtotal
-    @items.sum { |code| PRODUCTS[code][:price] }
+    @items.sum(&:price)
   end
 
   def calculate_total_discount
-    grouped_items.sum do |code, count|
-      price = PRODUCTS[code][:price]
-      calculate_offer_discount(code, count, price)
+    grouped_items.sum do |product, count|
+      calculate_offer_discount(product.code, count, product.price)
     end
   end
 
