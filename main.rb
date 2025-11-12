@@ -1,5 +1,7 @@
 require_relative 'lib/product'
 require_relative 'lib/basket'
+require_relative 'lib/delivery_rule'
+require_relative 'lib/offer'
 
 class Main
   def initialize(product_codes)
@@ -14,14 +16,14 @@ class Main
       Product.new(code: 'B01', name: 'Blue Widget', price: 7.95)
     ]
 
-    # Define available offers
+    # Initialize offers using Offer class
     offers = [
-      { code: 'R01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 } },
-      { code: 'G01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 } }
+      Offer.new(code: 'R01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 }),
+      Offer.new(code: 'G01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 })
     ]
 
     # Create a new basket with products, delivery rules, and offers
-    basket = Basket.new(products, Basket::DELIVERY_RULES, offers)
+    basket = Basket.new(products, DeliveryRule::DELIVERY_RULES, offers)
 
     # Add each product to the basket
     @product_codes.each { |code| basket.add(code) }

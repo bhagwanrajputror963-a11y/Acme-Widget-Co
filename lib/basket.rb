@@ -1,19 +1,10 @@
 require_relative 'product'
+require_relative 'delivery_rule'
 
 class Basket
-  DELIVERY_RULES = [
-    { threshold: 50, cost: 4.95 },
-    { threshold: 90, cost: 2.95 },
-    { threshold: Float::INFINITY, cost: 0.00 }
-  ].freeze
-
-  # Offers format:
-  # [
-  #   { code: 'R01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 } },
-  # ]
-  def initialize(products, delivery_rules = DELIVERY_RULES, offers = [])
+  def initialize(products, delivery_rules = DeliveryRule::DELIVERY_RULES, offers = [])
     @product_catalog = products
-    @delivery_rules = delivery_rules
+    @delivery_rule = DeliveryRule.new(delivery_rules)
     @offers = offers
     @items = []
   end
@@ -27,14 +18,14 @@ class Basket
   def total
     subtotal = calculate_subtotal
     discount = calculate_total_discount
-    delivery = calculate_delivery(subtotal - discount)
+    delivery = @delivery_rule.calculate(subtotal - discount)
     (subtotal - discount + delivery).round(2)
   end
 
   def summary
     subtotal = calculate_subtotal
     discount = calculate_total_discount
-    delivery = calculate_delivery(subtotal - discount)
+    delivery = @delivery_rule.calculate(subtotal - discount)
     total_price = subtotal - discount + delivery
 
     puts "🛒 Basket Summary"
@@ -63,20 +54,16 @@ class Basket
   end
 
   def calculate_offer_discount(code, count, price)
-    offer = @offers.find { |o| o[:code] == code }
+    offer = @offers.find { |o| o.code == code }
     return 0 unless offer
 
-    case offer[:type]
+    case offer.type
     when :bogo
       eligible_pairs = count / 2
-      eligible_pairs * (price * offer[:details][:discount])
+      eligible_pairs * (price * offer.details[:discount])
     else
       0
     end
-  end
-
-  def calculate_delivery(adjusted_subtotal)
-    @delivery_rules.find { |rule| adjusted_subtotal < rule[:threshold] }[:cost]
   end
 
   def grouped_items
