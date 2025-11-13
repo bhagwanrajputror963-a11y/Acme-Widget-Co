@@ -7,6 +7,8 @@ require_relative 'lib/offer'
 
 # Main application file to run the shopping basket
 class Main
+  attr_reader :products, :offers, :delivery_rules, :product_codes
+
   def initialize(product_codes)
     # Initialize products using Product class
     @products = initialize_products
@@ -19,10 +21,10 @@ class Main
 
   def show_total
     # Create a new basket with products, delivery rules, and offers
-    basket = Basket.new(@products, @delivery_rules, @offers)
+    basket = Basket.new(products, delivery_rules, offers)
 
     # Add each product to the basket
-    @product_codes.each { |code| basket.add(code) }
+    product_codes.each { |code| basket.add(code) }
 
     # Display final total of the basket
     basket.total
@@ -48,8 +50,7 @@ class Main
   def initialize_delivery_rules
     DeliveryRule.new([
                        { threshold: 50, cost: 4.95 },
-                       { threshold: 90, cost: 2.95 },
-                       { threshold: Float::INFINITY, cost: 0.00 }
+                       { threshold: 90, cost: 2.95 }
                      ])
   end
 end
