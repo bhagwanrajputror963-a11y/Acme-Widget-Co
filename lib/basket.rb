@@ -14,15 +14,18 @@ class Basket
 
   def add(product_code)
     product = @product_catalog.find { |p| p.code == product_code }
-    puts "Unknown product code: #{product_code}" unless product
+    return puts "Unknown product code: #{product_code}" unless product
+
     @items << product
   end
 
   def total
+    return 0 if @items.empty?
+
     subtotal = calculate_subtotal
     discount = calculate_total_discount
     delivery = @delivery_rule.calculate(subtotal - discount)
-    subtotal - discount + delivery
+    (subtotal - discount + delivery).round(2)
   end
 
   private
@@ -33,20 +36,8 @@ class Basket
 
   def calculate_total_discount
     grouped_items.sum do |product, count|
-      calculate_offer_discount(product.code, count, product.price)
-    end
-  end
-
-  def calculate_offer_discount(code, count, price)
-    offer = @offers.find { |o| o.code == code }
-    return 0 unless offer
-
-    case offer.type
-    when :bogo
-      eligible_pairs = count / 2
-      eligible_pairs * (price * offer.details[:discount])
-    else
-      0
+      offer = @offers.find { |o| o.code == product.code }
+      offer ? offer.discount_for(count, product.price) : 0
     end
   end
 

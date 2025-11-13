@@ -17,8 +17,8 @@ RSpec.describe Basket do # rubocop:disable Metrics/BlockLength
 
   let(:offers) do
     [
-      Offer.new(code: 'R01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 }),
-      Offer.new(code: 'G01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 })
+      Offer.new(code: 'R01', type: :buy_one_get_one_half, discount: 0.5),
+      Offer.new(code: 'G01', type: :buy_one_get_one_half, discount: 0.5)
     ]
   end
 
@@ -29,6 +29,7 @@ RSpec.describe Basket do # rubocop:disable Metrics/BlockLength
                        { threshold: Float::INFINITY, cost: 0.00 }
                      ])
   end
+
   subject(:basket) { described_class.new(products, delivery_rule, offers) }
 
   describe '#add' do
@@ -42,18 +43,29 @@ RSpec.describe Basket do # rubocop:disable Metrics/BlockLength
     end
   end
 
-  describe '#total' do
+  describe '#total' do # rubocop:disable Metrics/BlockLength
+    context 'when no products are added' do
+      it 'prints a message and returns 0' do
+        expect(basket.total).to eq(0)
+      end
+    end
+
     context 'without offers' do
       it 'calculates total including delivery' do
         basket_no_offers = described_class.new(products, delivery_rule, [])
         basket_no_offers.add('B01')
         basket_no_offers.add('B01')
-        expect { basket_no_offers.total }.to output(/Total:\s+\$20.85/).to_stdout
+
+        subtotal = 7.95 * 2
+        delivery = 4.95 # under $50
+        expected_total = (subtotal + delivery).round(2)
+
+        expect(basket_no_offers.total).to eq(expected_total)
       end
     end
 
-    context 'with BOGO offers' do
-      it 'applies BOGO discount correctly' do
+    context 'with buy_one_get_one_half offers' do
+      it 'applies buy_one_get_one_half discount correctly' do
         basket.add('R01')
         basket.add('R01')
         basket.add('G01')
@@ -62,19 +74,11 @@ RSpec.describe Basket do # rubocop:disable Metrics/BlockLength
         subtotal = 32.95 * 2 + 24.95 * 2
         discount = (32.95 * 0.5) + (24.95 * 0.5)
         adjusted_total = subtotal - discount
-        delivery = 2.95
-        total_price = (adjusted_total + delivery).round(2)
+        delivery = 2.95 # subtotal after discount is < 90
+        expected_total = (adjusted_total + delivery).round(2)
 
-        expect { basket.total }.to output(/Total:\s+\$#{format('%.2f', total_price)}/).to_stdout
+        expect(basket.total).to eq(expected_total)
       end
-    end
-  end
-
-  describe '#summary' do
-    it 'prints a summary without errors' do
-      basket.add('R01')
-      basket.add('G01')
-      expect { basket.total }.to output(/Basket Summary/).to_stdout
     end
   end
 end

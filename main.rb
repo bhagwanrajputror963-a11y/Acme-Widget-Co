@@ -40,8 +40,8 @@ class Main
 
   def initialize_offers
     [
-      Offer.new(code: 'R01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 }),
-      Offer.new(code: 'G01', type: :bogo, details: { buy: 1, get: 1, discount: 0.5 })
+      Offer.new(code: 'R01', type: :buy_one_get_one_half, discount: 0.5),
+      Offer.new(code: 'G01', type: :buy_one_get_one_half, discount: 0.5)
     ]
   end
 

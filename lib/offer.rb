@@ -2,11 +2,24 @@
 
 # Offer class to represent different types of offers
 class Offer
-  attr_reader :code, :type, :details
+  attr_reader :code, :type, :discount
 
-  def initialize(code:, type:, details:)
+  def initialize(code:, type:, discount:)
     @code = code
     @type = type
-    @details = details # details example: { buy: 1, get: 1, discount: 0.5 }
+    @discount = discount
+  end
+
+  # Calculate discount for a product based on count and price
+  def discount_for(count, price)
+    return 0 unless count.positive?
+
+    case type
+    when :buy_one_get_one_half
+      eligible_pairs = count / 2
+      eligible_pairs * (price * discount)
+    else
+      0
+    end
   end
 end
